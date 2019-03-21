@@ -4,6 +4,7 @@ __author__ = 'micpfist'
 
 import hashlib
 import json
+import requests
 from time import time
 from uuid import uuid4
 from urllib.parse import urlparse
@@ -117,7 +118,12 @@ class Blockchain(object):
         :return: None
         """
         parsed_url = urlparse(address)
-        self.nodes.add(parsed_url.netloc)
+        if parsed_url.netloc:
+            self.nodes.add(parsed_url.netloc)
+        elif parsed_url.path:
+            self.nodes.add(parsed_url.path)
+        else:
+            raise ValueError('invalid url')
 
     def valid_chain(self, chain):
         """
@@ -156,7 +162,7 @@ class Blockchain(object):
         max_length = len(self.chain)
 
         for node in neighbours:
-            response = request.get(f'http://{node}/chain')
+            response = requests.get(f'http://{node}/chain')
 
             if response.status_code == 200:
                 length = response.json()['length']
@@ -255,4 +261,11 @@ def consensus():
     return jsonify(response), 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
+    args = parser.parse_args()
+    port = args.port
+
+    app.run(host='0.0.0.0', port=port)
