@@ -11,6 +11,8 @@ from urllib.parse import urlparse
 
 from flask import Flask, jsonify, request
 
+MINING_DIFFICULTY = 2
+
 
 class Blockchain(object):
     def __init__(self):
@@ -81,22 +83,15 @@ class Blockchain(object):
         """
         return self.chain[-1]
 
-    @staticmethod
-    def valid_proof(last_proof, proof):
+    def valid_proof(self, transactions, last_hash, nonce, difficulty=MINING_DIFFICULTY):
         """
-
-        :param last_proof:
-        :type last_proof int
-        :param proof:
-        :type proof int
-        :return:
-        :rtype bool
+        Check if a hash value satisfies the mining conditions. This function is used within the proof_of_work function.
         """
-        guess = f'{last_proof}{proof}'.encode()
+        guess = (str(transactions) + str(last_hash) + str(nonce)).encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
-        return guess_hash[:4] == "0000"
+        return guess_hash[:difficulty] == '0' * difficulty
 
-    def proof_of_work(self, last_proof):
+    def proof_of_work(self):
         """
 
         :param last_proof:
@@ -104,11 +99,14 @@ class Blockchain(object):
         :return:
         :rtype int
         """
-        proof = 0
-        while self.valid_proof(last_proof, proof):
-            proof += 1
+        last_block = self.chain[-1]
+        last_hash = self.hash(last_block)
 
-        return proof
+        nonce = 0
+        while self.valid_proof(self.current_transactions, last_hash, nonce) is False:
+            nonce += 1
+
+        return nonce
 
     def register_node(self, address):
         """
@@ -187,7 +185,7 @@ blockchain = Blockchain()
 def mine():
     last_block = blockchain.last_block
     last_proof = blockchain.last_block['proof']
-    proof = blockchain.proof_of_work(last_proof)
+    proof = blockchain.proof_of_work()
 
     blockchain.new_transaction(sender="0", recipient=node_identifier, amount=1)
 
