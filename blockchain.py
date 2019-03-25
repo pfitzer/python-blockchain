@@ -138,10 +138,14 @@ class Blockchain(object):
             print(f'{block}')
             print("n\-------------\n")
 
-            if block['previous_block'] != self.hash(last_block):
+            if block['previous_hash'] != self.hash(last_block):
                 return False
 
-            if not self.valid_proof(last_block['proof'], block['proof']):
+            transactions = block['transactions'][:-1]
+            if len(transactions) == 0:
+                return True
+
+            if not self.valid_proof(transactions, block['previous_hash'], block['nonce'], MINING_DIFFICULTY):
                 return False
 
             last_block = block
