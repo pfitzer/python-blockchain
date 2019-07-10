@@ -1,7 +1,3 @@
-# Copyright (c) 2019 T-Systems CH. All Rights Reserved.
-#
-__author__ = 'micpfist'
-
 import hashlib
 import json
 import requests
@@ -11,7 +7,7 @@ from urllib.parse import urlparse
 
 from flask import Flask, jsonify, request
 
-MINING_DIFFICULTY = 2
+MINING_DIFFICULTY = 5
 
 
 class Blockchain(object):
